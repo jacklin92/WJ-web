@@ -1,0 +1,30 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.tsx';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+
+<BaseLayout title="文章列表" description="所有部落格文章">
+  <main class="max-w-4xl mx-auto px-4 py-12">
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold mb-4">文章列表</h1>
+      <p class="text-[var(--text-secondary)]">技術筆記與學習心得</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {posts.map((post) => (
+        <PostCard
+          client:load
+          title={post.data.title}
+          description={post.data.description}
+          pubDate={post.data.pubDate.toISOString()}
+          slug={post.id}
+          heroImage={post.data.heroImage?.src}
+        />
+      ))}
+    </div>
+  </main>
+</BaseLayout>

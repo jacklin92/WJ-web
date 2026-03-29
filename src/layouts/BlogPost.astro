@@ -1,0 +1,41 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+
+type Props = CollectionEntry<'blog'>['data'];
+
+const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="max-w-3xl mx-auto px-4 py-12">
+    <article class="bg-[var(--bg-secondary)]/60 backdrop-blur-sm rounded-2xl border border-[var(--border-color)] overflow-hidden">
+      {heroImage && (
+        <img
+          src={heroImage.src}
+          alt={title}
+          class="w-full h-64 object-cover"
+          style="border-radius: 0;"
+        />
+      )}
+      <div class="p-8">
+        <div class="mb-8 text-center">
+          <div class="text-[var(--text-secondary)] text-sm mb-2">
+            <FormattedDate date={pubDate} />
+            {updatedDate && (
+              <span class="italic ml-2">
+                (更新於 <FormattedDate date={updatedDate} />)
+              </span>
+            )}
+          </div>
+          <h1 class="text-3xl font-bold mb-4">{title}</h1>
+          <hr class="border-[var(--border-color)]" />
+        </div>
+        <div class="prose prose-invert max-w-none leading-relaxed">
+          <slot />
+        </div>
+      </div>
+    </article>
+  </main>
+</BaseLayout>
