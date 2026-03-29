@@ -1,36 +1,201 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import TypeWriter from '../components/TypeWriter.tsx';
+import PostCard from '../components/PostCard.tsx';
 import { SITE_TITLE } from '../consts';
+
+const recentPosts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 4);
+
+const skills = [
+  { name: 'Python', color: '#3776AB' },
+  { name: 'Jupyter Notebook', color: '#F37626' },
+  { name: 'Astro', color: '#FF5D01' },
+  { name: 'React', color: '#61DAFB' },
+  { name: 'Three.js', color: '#000000' },
+  { name: 'Tailwind CSS', color: '#06B6D4' },
+  { name: 'JavaScript', color: '#F7DF1E' },
+  { name: 'TypeScript', color: '#3178C6' },
+  { name: 'MDX', color: '#FCB32C' },
+  { name: 'HTML / CSS', color: '#E34F26' },
+];
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <BaseLayout>
-  <main class="min-h-screen flex items-center justify-center px-4">
-    <div class="max-w-2xl text-center">
-      <p class="text-[var(--accent-light)] text-sm font-medium tracking-wider uppercase mb-4">
-        歡迎來到我的作品集
-      </p>
-      <h1 class="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-[var(--accent-light)] to-[var(--accent)] bg-clip-text text-transparent leading-tight">
-        {SITE_TITLE}
+  <!-- Hero Section -->
+  <section class="min-h-screen flex items-center justify-center px-4 relative">
+    <div class="max-w-3xl text-center" style="animation: fadeInUp 1s ease-out;">
+      <div class="inline-block px-4 py-1.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] backdrop-blur-sm mb-6 text-sm text-[var(--accent-light)]">
+        Welcome to my portfolio
+      </div>
+      <h1 class="text-5xl md:text-7xl font-bold mb-4 leading-tight">
+        <span class="shimmer-text">{SITE_TITLE}</span>
       </h1>
-      <p class="text-lg text-[var(--text-secondary)] mb-8 leading-relaxed">
-        我是一名網頁開發者，熱衷於打造互動式的網頁體驗。
-        這裡是我的技術部落格與作品展示空間。
+      <div class="text-xl md:text-2xl text-[var(--text-secondary)] mb-8 h-10">
+        <TypeWriter
+          client:load
+          words={['Web Developer', 'Python Enthusiast', 'Data Explorer', 'Creative Coder']}
+          typingSpeed={80}
+          deletingSpeed={50}
+          pauseTime={2500}
+        />
+      </div>
+      <p class="text-base text-[var(--text-secondary)] mb-10 max-w-xl mx-auto leading-relaxed">
+        熱衷於用程式打造互動式的數位體驗。<br />
+        專注於網頁開發、資料科學與 3D 視覺化。
       </p>
       <div class="flex gap-4 justify-center flex-wrap">
         <a
-          href="/blog"
-          class="inline-block px-8 py-3 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg font-medium transition-all hover:scale-105"
+          href="#about"
+          class="group inline-flex items-center gap-2 px-8 py-3 bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-full font-medium transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(109,40,217,0.4)]"
+        >
+          認識我
+          <svg class="w-4 h-4 transition-transform group-hover:translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </a>
+        <a
+          href={`${basePath}/blog`}
+          class="inline-flex items-center gap-2 px-8 py-3 border border-[var(--border-color)] hover:border-[var(--accent-light)] text-[var(--text-primary)] rounded-full font-medium transition-all hover:scale-105"
         >
           閱讀文章
         </a>
+      </div>
+    </div>
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2" style="animation: float 3s ease-in-out infinite;">
+      <div class="w-6 h-10 rounded-full border-2 border-[var(--border-color)] flex justify-center pt-2">
+        <div class="w-1 h-2 rounded-full bg-[var(--accent-light)]" style="animation: fadeInUp 1.5s ease-in-out infinite;" />
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="py-24 px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-16 reveal">
+        <h2 class="text-3xl md:text-4xl font-bold mb-3">關於我</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div class="reveal">
+          <div class="glass-card p-8" style="animation: pulseGlow 4s ease-in-out infinite;">
+            <div class="text-6xl mb-4 text-center" style="animation: float 4s ease-in-out infinite;">
+              &lt;/&gt;
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-center">
+              <div class="p-3">
+                <div class="text-2xl font-bold text-[var(--accent-light)]">14+</div>
+                <div class="text-sm text-[var(--text-secondary)]">GitHub Repos</div>
+              </div>
+              <div class="p-3">
+                <div class="text-2xl font-bold text-[var(--accent-light)]">4+</div>
+                <div class="text-sm text-[var(--text-secondary)]">主要語言</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal">
+          <h3 class="text-xl font-bold mb-4 text-[var(--accent-light)]">
+            WJ - Web Developer & Data Explorer
+          </h3>
+          <p class="text-[var(--text-secondary)] leading-relaxed mb-4">
+            擅長使用 Python 進行資料分析與自動化，同時也熱衷於前端開發，
+            喜歡將資料視覺化與互動式網頁體驗結合在一起。
+          </p>
+          <p class="text-[var(--text-secondary)] leading-relaxed">
+            目前專注於探索 AI 應用、RAG 架構與全端開發，
+            持續學習並將所學記錄在這個部落格中。
+          </p>
+          <a
+            href="https://github.com/jacklin92"
+            target="_blank"
+            class="inline-flex items-center gap-2 mt-6 px-5 py-2 rounded-full border border-[var(--border-color)] hover:border-[var(--accent-light)] text-sm transition-all hover:scale-105"
+          >
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+            </svg>
+            查看 GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills Section -->
+  <section class="py-24 px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-16 reveal">
+        <h2 class="text-3xl md:text-4xl font-bold mb-3">技術棧</h2>
+        <div class="section-divider"></div>
+        <p class="text-[var(--text-secondary)]">日常開發使用的技術與工具</p>
+      </div>
+      <div class="flex flex-wrap justify-center gap-3 reveal">
+        {skills.map((skill, i) => (
+          <div class="skill-pill" style={`animation-delay: ${i * 0.08}s;`}>
+            <span class="dot" style={`background-color: ${skill.color}; box-shadow: 0 0 8px ${skill.color};`} />
+            {skill.name}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Posts Section -->
+  <section class="py-24 px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-16 reveal">
+        <h2 class="text-3xl md:text-4xl font-bold mb-3">最新文章</h2>
+        <div class="section-divider"></div>
+        <p class="text-[var(--text-secondary)]">技術筆記與學習心得</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {recentPosts.map((post, i) => (
+          <div class="reveal" style={`transition-delay: ${i * 0.1}s;`}>
+            <PostCard
+              client:load
+              title={post.data.title}
+              description={post.data.description}
+              pubDate={post.data.pubDate.toISOString()}
+              slug={post.id}
+              heroImage={post.data.heroImage?.src}
+              basePath={basePath}
+            />
+          </div>
+        ))}
+      </div>
+      <div class="text-center mt-10 reveal">
         <a
-          href="https://github.com"
-          target="_blank"
-          class="inline-block px-8 py-3 border border-[var(--border-color)] hover:border-[var(--accent-light)] text-[var(--text-primary)] rounded-lg font-medium transition-all hover:scale-105"
+          href={`${basePath}/blog`}
+          class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[var(--border-color)] hover:border-[var(--accent-light)] transition-all hover:scale-105 text-sm"
         >
-          GitHub
+          查看所有文章
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
         </a>
       </div>
     </div>
-  </main>
+  </section>
 </BaseLayout>
+
+<script>
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    },
+    { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+  );
+
+  document.querySelectorAll('.reveal, .reveal-scale').forEach((el) => {
+    observer.observe(el);
+  });
+</script>

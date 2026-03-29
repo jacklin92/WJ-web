@@ -6,25 +6,50 @@ import PostCard from '../../components/PostCard.tsx';
 const posts = (await getCollection('blog')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <BaseLayout title="文章列表" description="所有部落格文章">
   <main class="max-w-4xl mx-auto px-4 py-12">
-    <div class="text-center mb-12">
-      <h1 class="text-4xl font-bold mb-4">文章列表</h1>
+    <div class="text-center mb-16" style="animation: fadeInUp 0.8s ease-out;">
+      <div class="inline-block px-4 py-1.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] backdrop-blur-sm mb-4 text-sm text-[var(--accent-light)]">
+        Blog
+      </div>
+      <h1 class="text-4xl md:text-5xl font-bold mb-3">
+        <span class="shimmer-text">文章列表</span>
+      </h1>
+      <div class="section-divider"></div>
       <p class="text-[var(--text-secondary)]">技術筆記與學習心得</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {posts.map((post) => (
-        <PostCard
-          client:load
-          title={post.data.title}
-          description={post.data.description}
-          pubDate={post.data.pubDate.toISOString()}
-          slug={post.id}
-          heroImage={post.data.heroImage?.src}
-        />
+      {posts.map((post, i) => (
+        <div class="reveal" style={`transition-delay: ${i * 0.1}s;`}>
+          <PostCard
+            client:load
+            title={post.data.title}
+            description={post.data.description}
+            pubDate={post.data.pubDate.toISOString()}
+            slug={post.id}
+            heroImage={post.data.heroImage?.src}
+            basePath={basePath}
+          />
+        </div>
       ))}
     </div>
   </main>
 </BaseLayout>
+
+<script>
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    },
+    { threshold: 0.1 }
+  );
+  document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+</script>

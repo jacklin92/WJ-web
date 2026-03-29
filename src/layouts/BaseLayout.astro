@@ -3,6 +3,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ThreeScene from '../components/ThreeScene.tsx';
+import MouseGlow from '../components/MouseGlow.tsx';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
 interface Props {
@@ -20,6 +21,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
   </head>
   <body>
     <ThreeScene client:only="react" />
+    <MouseGlow client:only="react" />
     <Header />
     <div class="relative z-10 pt-16">
       <slot />
