@@ -1,5 +1,6 @@
 ---
 import { SITE_TITLE } from '../consts';
+import ThemeToggle from './ThemeToggle.tsx';
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
@@ -12,16 +13,20 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
       </a>
     </h2>
     <div class="flex gap-6 items-center">
-      <a href={`${basePath}/`} class="nav-link text-[var(--text-secondary)] hover:text-white transition-colors text-sm font-medium relative">
+      <a href={`${basePath}/`} class="nav-link text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium relative">
         首頁
       </a>
-      <a href={`${basePath}/blog`} class="nav-link text-[var(--text-secondary)] hover:text-white transition-colors text-sm font-medium relative">
+      <a href={`${basePath}/blog`} class="nav-link text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium relative">
         文章
       </a>
+      <a href={`${basePath}/editor`} class="nav-link text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium relative">
+        編輯器
+      </a>
+      <ThemeToggle client:only="react" />
       <a
         href="https://github.com/jacklin92"
         target="_blank"
-        class="text-[var(--text-secondary)] hover:text-white transition-all hover:scale-110"
+        class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all hover:scale-110"
       >
         <span class="sr-only">GitHub</span>
         <svg viewBox="0 0 16 16" aria-hidden="true" width="20" height="20">
@@ -57,8 +62,9 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
   window.addEventListener('scroll', () => {
     if (header) {
       if (window.scrollY > 50) {
+        const isDark = !document.documentElement.getAttribute('data-theme') || document.documentElement.getAttribute('data-theme') !== 'day';
         header.style.backdropFilter = 'blur(12px)';
-        header.style.background = 'rgba(15, 15, 26, 0.8)';
+        header.style.background = isDark ? 'rgba(15, 15, 26, 0.8)' : 'rgba(245, 245, 247, 0.85)';
         header.style.borderBottom = '1px solid var(--border-color)';
       } else {
         header.style.backdropFilter = 'blur(0px)';

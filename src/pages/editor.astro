@@ -1,0 +1,10 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleEditor from '../components/ArticleEditor.tsx';
+---
+
+<BaseLayout title="文章編輯器" description="建立與編輯文章">
+  <main style="height: calc(100vh - 4rem); padding: 0 1rem 1rem;">
+    <ArticleEditor client:only="react" />
+  </main>
+</BaseLayout>

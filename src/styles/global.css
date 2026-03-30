@@ -16,6 +16,22 @@
     0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
+[data-theme="day"] {
+  --accent: #7c3aed;
+  --accent-light: #8b5cf6;
+  --accent-dark: #5b21b6;
+  --accent-glow: #a78bfa;
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --text-primary: #1a1a2e;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
 @font-face {
   font-family: "Atkinson";
   src: url("/fonts/atkinson-regular.woff") format("woff");
@@ -221,6 +237,7 @@ body {
   font-size: 18px;
   line-height: 1.7;
   overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 html {
@@ -229,8 +246,51 @@ html {
 
 h1, h2, h3, h4, h5, h6 {
   margin: 0 0 0.5rem 0;
-  color: #fff;
+  color: var(--text-primary);
   line-height: 1.2;
+}
+
+/* Day mode heading override for white-forced contexts */
+[data-theme="day"] .shimmer-text {
+  background: linear-gradient(90deg, var(--text-primary) 0%, var(--accent) 40%, var(--accent-glow) 60%, var(--text-primary) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+/* Editor contentEditable placeholder */
+[contenteditable]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-secondary);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Editor content styling */
+[contenteditable] h1 { font-size: 2rem; margin: 1rem 0 0.5rem; }
+[contenteditable] h2 { font-size: 1.5rem; margin: 0.8rem 0 0.4rem; }
+[contenteditable] h3 { font-size: 1.25rem; margin: 0.6rem 0 0.3rem; }
+[contenteditable] blockquote {
+  border-left: 4px solid var(--accent);
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+}
+[contenteditable] pre {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: monospace;
+  font-size: 0.9rem;
+  overflow-x: auto;
+}
+[contenteditable] img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 0.5rem 0;
 }
 
 a {

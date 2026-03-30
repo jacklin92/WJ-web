@@ -20,6 +20,21 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
     <BaseHead title={title} description={description} />
   </head>
   <body>
+    <script is:inline>
+      (function() {
+        var t = localStorage.getItem('wj-theme');
+        if (t) document.documentElement.setAttribute('data-theme', t);
+        if (t === 'custom') {
+          try {
+            var c = JSON.parse(localStorage.getItem('wj-theme-custom') || '{}');
+            if (c.baseMode === 'light') {
+              document.documentElement.style.setProperty('--bg-primary', '#f5f5f7');
+              document.documentElement.style.setProperty('--text-primary', '#1a1a2e');
+            }
+          } catch(e) {}
+        }
+      })();
+    </script>
     <ThreeScene client:only="react" />
     <MouseGlow client:only="react" />
     <Header />
