@@ -246,7 +246,7 @@ export default function ArticleEditor() {
             style={{
               padding: '6px 14px',
               background: 'var(--accent)',
-              color: '#fff',
+              color: 'var(--accent-text)',
               border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
@@ -493,7 +493,7 @@ export default function ArticleEditor() {
                 marginTop: '0.5rem',
                 padding: '10px 24px',
                 background: 'var(--accent)',
-                color: '#fff',
+                color: 'var(--accent-text)',
                 border: 'none',
                 borderRadius: '999px',
                 cursor: 'pointer',

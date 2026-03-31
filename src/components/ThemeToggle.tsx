@@ -47,7 +47,7 @@ function lighten(hex: string, amount: number): string {
 }
 
 const ALL_VARS = [
-  '--accent', '--accent-light', '--accent-dark', '--accent-glow',
+  '--accent', '--accent-light', '--accent-dark', '--accent-glow', '--accent-text',
   '--bg-primary', '--bg-secondary', '--bg-card',
   '--text-primary', '--text-secondary', '--border-color',
 ];
@@ -61,8 +61,12 @@ function applyBgOverrides(root: HTMLElement, bgColor: string) {
     root.style.setProperty('--text-secondary', '#64748b');
     root.style.setProperty('--border-color', '#e2e8f0');
   } else {
-    root.style.setProperty('--bg-secondary', lighten(bgColor, 8));
-    root.style.setProperty('--bg-card', lighten(bgColor, 8));
+    const sec = lighten(bgColor, 8);
+    root.style.setProperty('--bg-secondary', sec);
+    const rv = parseInt(sec.slice(1, 3), 16);
+    const gv = parseInt(sec.slice(3, 5), 16);
+    const bv = parseInt(sec.slice(5, 7), 16);
+    root.style.setProperty('--bg-card', `rgba(${rv},${gv},${bv},0.6)`);
     root.style.setProperty('--text-primary', '#e2e8f0');
     root.style.setProperty('--text-secondary', '#94a3b8');
     root.style.setProperty('--border-color', lighten(bgColor, 18));
@@ -80,6 +84,7 @@ function applyMode(mode: ThemeMode, custom: CustomSettings, bgOverride: string |
     root.style.setProperty('--accent-light', hslToHex(h, Math.min(s + 15, 100), 65));
     root.style.setProperty('--accent-dark', hslToHex(h, s, 30));
     root.style.setProperty('--accent-glow', hslToHex(h, Math.min(s + 20, 100), 75));
+    root.style.setProperty('--accent-text', isLightHex(custom.accentColor) ? '#1a1a2e' : '#ffffff');
     applyBgOverrides(root, custom.bgColor);
   } else if (bgOverride) {
     applyBgOverrides(root, bgOverride);

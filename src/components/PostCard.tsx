@@ -39,7 +39,7 @@ export default function PostCard({ title, description, pubDate, slug, heroImage,
                 left: 0,
                 right: 0,
                 height: '60px',
-                background: 'linear-gradient(transparent, rgba(15, 15, 26, 0.8))',
+                background: 'linear-gradient(transparent, var(--bg-primary))',
               }}
             />
           </div>
@@ -70,7 +70,7 @@ export default function PostCard({ title, description, pubDate, slug, heroImage,
             style={{
               margin: '0 0 0.5rem 0',
               fontSize: '1.2rem',
-              color: '#fff',
+              color: 'var(--text-primary)',
               lineHeight: 1.4,
             }}
           >
