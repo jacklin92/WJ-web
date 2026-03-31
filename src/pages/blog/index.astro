@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.tsx';
+import PublishedPosts from '../../components/PublishedPosts.tsx';
 
 const posts = (await getCollection('blog')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -37,6 +38,7 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
         </div>
       ))}
     </div>
+    <PublishedPosts client:only="react" basePath={basePath} />
   </main>
 </BaseLayout>
 

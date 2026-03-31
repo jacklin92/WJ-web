@@ -4,6 +4,7 @@ interface Article {
   id: string;
   title: string;
   content: string;
+  published?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,36 +62,43 @@ function htmlToMarkdown(html: string): string {
   return md.trim();
 }
 
+const TrashIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+  </svg>
+);
+
 const toolbarGroups = [
   [
-    { cmd: 'bold', label: 'B', style: { fontWeight: 700 }, title: '粗體' },
-    { cmd: 'italic', label: 'I', style: { fontStyle: 'italic' }, title: '斜體' },
-    { cmd: 'underline', label: 'U', style: { textDecoration: 'underline' }, title: '底線' },
-    { cmd: 'strikeThrough', label: 'S', style: { textDecoration: 'line-through' }, title: '刪除線' },
+    { cmd: 'bold', label: 'B', style: { fontWeight: 700 }, title: '\u7C97\u9AD4' },
+    { cmd: 'italic', label: 'I', style: { fontStyle: 'italic' }, title: '\u659C\u9AD4' },
+    { cmd: 'underline', label: 'U', style: { textDecoration: 'underline' }, title: '\u5E95\u7DDA' },
+    { cmd: 'strikeThrough', label: 'S', style: { textDecoration: 'line-through' }, title: '\u522A\u9664\u7DDA' },
   ],
   [
-    { cmd: 'formatBlock', value: 'h1', label: 'H1', style: { fontSize: '0.7rem', fontWeight: 700 }, title: '標題 1' },
-    { cmd: 'formatBlock', value: 'h2', label: 'H2', style: { fontSize: '0.7rem', fontWeight: 700 }, title: '標題 2' },
-    { cmd: 'formatBlock', value: 'h3', label: 'H3', style: { fontSize: '0.7rem', fontWeight: 700 }, title: '標題 3' },
-    { cmd: 'formatBlock', value: 'p', label: 'P', style: { fontSize: '0.7rem' }, title: '段落' },
+    { cmd: 'formatBlock', value: 'h1', label: 'H1', style: { fontSize: '0.7rem', fontWeight: 700 }, title: '\u6A19\u984C 1' },
+    { cmd: 'formatBlock', value: 'h2', label: 'H2', style: { fontSize: '0.7rem', fontWeight: 700 }, title: '\u6A19\u984C 2' },
+    { cmd: 'formatBlock', value: 'h3', label: 'H3', style: { fontSize: '0.7rem', fontWeight: 700 }, title: '\u6A19\u984C 3' },
+    { cmd: 'formatBlock', value: 'p', label: 'P', style: { fontSize: '0.7rem' }, title: '\u6BB5\u843D' },
   ],
   [
-    { cmd: 'insertUnorderedList', label: '\u2022', style: { fontSize: '1.1rem' }, title: '無序清單' },
-    { cmd: 'insertOrderedList', label: '1.', style: { fontSize: '0.75rem', fontWeight: 600 }, title: '有序清單' },
+    { cmd: 'insertUnorderedList', label: '\u2022', style: { fontSize: '1.1rem' }, title: '\u7121\u5E8F\u6E05\u55AE' },
+    { cmd: 'insertOrderedList', label: '1.', style: { fontSize: '0.75rem', fontWeight: 600 }, title: '\u6709\u5E8F\u6E05\u55AE' },
   ],
   [
-    { cmd: 'link', label: '\uD83D\uDD17', style: {}, title: '插入連結' },
-    { cmd: 'image', label: '\uD83D\uDDBC', style: {}, title: '插入圖片' },
-    { cmd: 'insertHorizontalRule', label: '—', style: { fontWeight: 700 }, title: '分隔線' },
+    { cmd: 'link', label: '\uD83D\uDD17', style: {}, title: '\u63D2\u5165\u9023\u7D50' },
+    { cmd: 'image', label: '\uD83D\uDDBC', style: {}, title: '\u63D2\u5165\u5716\u7247' },
+    { cmd: 'insertHorizontalRule', label: '\u2014', style: { fontWeight: 700 }, title: '\u5206\u9694\u7DDA' },
   ],
   [
-    { cmd: 'formatBlock', value: 'blockquote', label: '\u201C', style: { fontSize: '1.2rem', fontWeight: 700 }, title: '引用' },
-    { cmd: 'formatBlock', value: 'pre', label: '<>', style: { fontSize: '0.7rem', fontFamily: 'monospace' }, title: '程式碼區塊' },
+    { cmd: 'formatBlock', value: 'blockquote', label: '\u201C', style: { fontSize: '1.2rem', fontWeight: 700 }, title: '\u5F15\u7528' },
+    { cmd: 'formatBlock', value: 'pre', label: '<>', style: { fontSize: '0.7rem', fontFamily: 'monospace' }, title: '\u7A0B\u5F0F\u78BC\u5340\u584A' },
   ],
   [
-    { cmd: 'undo', label: '\u21A9', style: {}, title: '復原' },
-    { cmd: 'redo', label: '\u21AA', style: {}, title: '重做' },
-    { cmd: 'removeFormat', label: 'T\u0338', style: { fontSize: '0.8rem' }, title: '清除格式' },
+    { cmd: 'undo', label: '\u21A9', style: {}, title: '\u5FA9\u539F' },
+    { cmd: 'redo', label: '\u21AA', style: {}, title: '\u91CD\u505A' },
+    { cmd: 'removeFormat', label: 'T\u0338', style: { fontSize: '0.8rem' }, title: '\u6E05\u9664\u683C\u5F0F' },
   ],
 ];
 
@@ -103,8 +111,23 @@ export default function ArticleEditor() {
   const saveTimer = useRef<number>(0);
 
   useEffect(() => {
-    setArticles(loadArticles());
+    const loaded = loadArticles();
+    setArticles(loaded);
+    const params = new URLSearchParams(window.location.search);
+    const openId = params.get('id');
+    if (openId) {
+      const article = loaded.find(a => a.id === openId);
+      if (article) {
+        setCurrentId(article.id);
+        setTitle(article.title);
+        setTimeout(() => {
+          if (editorRef.current) editorRef.current.innerHTML = article.content;
+        }, 0);
+      }
+    }
   }, []);
+
+  const currentArticle = articles.find(a => a.id === currentId);
 
   const doSave = useCallback(() => {
     if (!currentId || !editorRef.current) return;
@@ -134,6 +157,7 @@ export default function ArticleEditor() {
       id: generateId(),
       title: '',
       content: '',
+      published: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -160,7 +184,7 @@ export default function ArticleEditor() {
 
   const deleteArticle = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (!confirm('確定要刪除這篇文章嗎？')) return;
+    if (!confirm('\u78BA\u5B9A\u8981\u522A\u9664\u9019\u7BC7\u6587\u7AE0\u55CE\uFF1F')) return;
     const updated = articles.filter(a => a.id !== id);
     setArticles(updated);
     saveToStorage(updated);
@@ -171,12 +195,25 @@ export default function ArticleEditor() {
     }
   };
 
+  const togglePublish = () => {
+    if (!currentId) return;
+    setArticles(prev => {
+      const updated = prev.map(a =>
+        a.id === currentId
+          ? { ...a, published: !a.published, updatedAt: new Date().toISOString() }
+          : a
+      );
+      saveToStorage(updated);
+      return updated;
+    });
+  };
+
   const execCmd = (cmd: string, value?: string) => {
     if (cmd === 'link') {
-      const url = prompt('輸入連結 URL:');
+      const url = prompt('\u8F38\u5165\u9023\u7D50 URL:');
       if (url) document.execCommand('createLink', false, url);
     } else if (cmd === 'image') {
-      const url = prompt('輸入圖片 URL:');
+      const url = prompt('\u8F38\u5165\u5716\u7247 URL:');
       if (url) document.execCommand('insertImage', false, url);
     } else if (cmd === 'formatBlock' && value) {
       document.execCommand('formatBlock', false, `<${value}>`);
@@ -190,7 +227,7 @@ export default function ArticleEditor() {
   const exportMarkdown = () => {
     if (!editorRef.current) return;
     const md = htmlToMarkdown(editorRef.current.innerHTML);
-    const frontmatter = `---\ntitle: '${title || '未命名'}'\ndescription: ''\npubDate: '${new Date().toISOString().split('T')[0]}'\n---\n\n`;
+    const frontmatter = `---\ntitle: '${title || '\u672A\u547D\u540D'}'\ndescription: ''\npubDate: '${new Date().toISOString().split('T')[0]}'\n---\n\n`;
     const blob = new Blob([frontmatter + md], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -288,15 +325,30 @@ export default function ArticleEditor() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    color: 'var(--text-primary)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}>
-                    {a.title || '未命名文章'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      color: 'var(--text-primary)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      flex: 1,
+                      minWidth: 0,
+                    }}>
+                      {a.title || '未命名文章'}
+                    </div>
+                    {a.published && (
+                      <span style={{
+                        fontSize: '0.6rem',
+                        padding: '1px 6px',
+                        borderRadius: '999px',
+                        background: 'rgba(34,197,94,0.15)',
+                        color: '#22c55e',
+                        flexShrink: 0,
+                        fontWeight: 600,
+                      }}>已發布</span>
+                    )}
                   </div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
                     {formatDate(a.updatedAt)}
@@ -309,18 +361,20 @@ export default function ArticleEditor() {
                     border: 'none',
                     color: 'var(--text-secondary)',
                     cursor: 'pointer',
-                    padding: '2px 6px',
+                    padding: '4px',
                     borderRadius: '4px',
-                    fontSize: '0.8rem',
                     opacity: 0.5,
                     transition: 'all 0.15s',
                     flexShrink: 0,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                   onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
                   onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                   title="刪除文章"
                 >
-                  \u2715
+                  <TrashIcon />
                 </button>
               </div>
             </div>
@@ -351,7 +405,7 @@ export default function ArticleEditor() {
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
             title={sidebarOpen ? '收合側邊欄' : '展開側邊欄'}
           >
-            {sidebarOpen ? '\u2630' : '\u2630'}
+            {'\u2630'}
           </button>
           {currentId && (
             <>
@@ -376,6 +430,35 @@ export default function ArticleEditor() {
                 onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-light)'; }}
                 onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
               />
+              <button
+                onClick={togglePublish}
+                style={{
+                  padding: '8px 16px',
+                  background: currentArticle?.published ? 'rgba(34,197,94,0.15)' : 'var(--bg-card)',
+                  border: `1px solid ${currentArticle?.published ? '#22c55e' : 'var(--border-color)'}`,
+                  borderRadius: '8px',
+                  color: currentArticle?.published ? '#22c55e' : 'var(--accent-light)',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+                title={currentArticle?.published ? '取消發布' : '發布文章'}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  {currentArticle?.published
+                    ? <><path d="M17 7l-10 10" /><path d="M7 7h10v10" /></>
+                    : <><path d="M7 17l10-10" /><path d="M17 17H7V7" /></>
+                  }
+                </svg>
+                {currentArticle?.published ? '取消發布' : '發布'}
+              </button>
               <button
                 onClick={exportMarkdown}
                 style={{
