@@ -25,7 +25,7 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       {posts.map((post, i) => (
-        <div class="reveal" style={`transition-delay: ${i * 0.1}s;`}>
+        <div class="reveal" style={`transition-delay: ${i * 0.1}s; height: 100%;`}>
           <PostCard
             client:load
             title={post.data.title}
