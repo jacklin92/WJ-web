@@ -49,7 +49,7 @@ void main(){
   float y = aT * 10.0 - 5.0;
   vDist = length(vec2(x, z));
   vec4 mvPos = modelViewMatrix * vec4(x, y, z, 1.0);
-  gl_PointSize = (2.2 - vDist * 0.4) * (300.0 / -mvPos.z);
+  gl_PointSize = (1.2 - vDist * 0.2) * (300.0 / -mvPos.z);
   gl_Position = projectionMatrix * mvPos;
 }`;
 
@@ -62,10 +62,10 @@ varying float vDist;
 void main(){
   float d = length(gl_PointCoord - 0.5);
   if(d > 0.5) discard;
-  float glow = exp(-d * 6.0);
+  float glow = exp(-d * 12.0);
   vec3 col = mix(uColorA, uColorB, vT);
-  col += uColorGlow * glow * 0.4;
-  float alpha = smoothstep(0.5, 0.1, d) * (0.7 + glow * 0.3);
+  col += uColorGlow * glow * 0.25;
+  float alpha = smoothstep(0.5, 0.25, d) * (0.85 + glow * 0.15);
   gl_FragColor = vec4(col * 1.2, alpha);
 }`;
 
@@ -255,7 +255,7 @@ void main(){
   float y = sin(uTime * 0.5 + aRadius * 2.0) * 0.15 * (1.0 - aRadius/5.0);
   vDist = aRadius / 5.0;
   vec4 mv = modelViewMatrix * vec4(x, y, z, 1.0);
-  gl_PointSize = aSize * (120.0 / -mv.z);
+  gl_PointSize = aSize * (60.0 / -mv.z);
   gl_Position = projectionMatrix * mv;
 }`;
 
@@ -267,13 +267,13 @@ varying float vDist;
 void main(){
   float d = length(gl_PointCoord - 0.5);
   if(d > 0.5) discard;
-  float glow = exp(-d * 5.0);
+  float glow = exp(-d * 14.0);
   vec3 core = uCG;
   vec3 col = vDist < 0.25
     ? mix(core, uCA, vDist * 4.0)
     : mix(uCA, uCB, (vDist - 0.25) / 0.75);
-  col += core * glow * 0.25;
-  float alpha = smoothstep(0.5, 0.05, d) * (0.6 + glow * 0.4);
+  col += core * glow * 0.15;
+  float alpha = smoothstep(0.5, 0.3, d) * (0.8 + glow * 0.2);
   gl_FragColor = vec4(col * 1.3, alpha);
 }`;
 
@@ -297,7 +297,7 @@ function GalaxyScene({ colors }: { colors: ThemeColors }) {
       const scatter = (Math.random() - 0.5) * 2 * scatterAmt;
       pos[i * 3] = scatter; pos[i * 3 + 1] = (Math.random() - 0.5) * 0.08; pos[i * 3 + 2] = scatter;
       // core particles larger
-      sizes[i] = r < 0.5 ? (Math.random() * 3 + 2) : (Math.random() * 2 + 0.8);
+      sizes[i] = r < 0.5 ? (Math.random() * 1.5 + 1.0) : (Math.random() * 1.0 + 0.4);
       angles[i] = Math.random() * Math.PI * 2;
       radii[i] = r;
       branches[i] = branch + scatter * 0.4;
