@@ -49,7 +49,7 @@ void main(){
   float y = aT * 10.0 - 5.0;
   vDist = length(vec2(x, z));
   vec4 mvPos = modelViewMatrix * vec4(x, y, z, 1.0);
-  gl_PointSize = (1.8 - vDist * 0.3) * (300.0 / -mvPos.z);
+  gl_PointSize = (0.9 - vDist * 0.15) * (300.0 / -mvPos.z);
   gl_Position = projectionMatrix * mvPos;
 }`;
 
@@ -100,8 +100,8 @@ void main(){
 
 function DNAHelixScene({ colors }: { colors: ThemeColors }) {
   const ref = useRef<THREE.Group>(null!);
-  const count = 1000;
-  const rungCount = 70;
+  const count = 2000;
+  const rungCount = 100;
 
   const { geo, mat, rungGeo, rungMat } = useMemo(() => {
     // particles
