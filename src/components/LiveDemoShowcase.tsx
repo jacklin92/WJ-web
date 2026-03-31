@@ -49,7 +49,7 @@ void main(){
   float y = aT * 10.0 - 5.0;
   vDist = length(vec2(x, z));
   vec4 mvPos = modelViewMatrix * vec4(x, y, z, 1.0);
-  gl_PointSize = (4.5 - vDist * 0.8) * (300.0 / -mvPos.z);
+  gl_PointSize = (2.2 - vDist * 0.4) * (300.0 / -mvPos.z);
   gl_Position = projectionMatrix * mvPos;
 }`;
 
@@ -255,7 +255,7 @@ void main(){
   float y = sin(uTime * 0.5 + aRadius * 2.0) * 0.15 * (1.0 - aRadius/5.0);
   vDist = aRadius / 5.0;
   vec4 mv = modelViewMatrix * vec4(x, y, z, 1.0);
-  gl_PointSize = aSize * (250.0 / -mv.z);
+  gl_PointSize = aSize * (120.0 / -mv.z);
   gl_Position = projectionMatrix * mv;
 }`;
 
@@ -297,7 +297,7 @@ function GalaxyScene({ colors }: { colors: ThemeColors }) {
       const scatter = (Math.random() - 0.5) * 2 * scatterAmt;
       pos[i * 3] = scatter; pos[i * 3 + 1] = (Math.random() - 0.5) * 0.08; pos[i * 3 + 2] = scatter;
       // core particles larger
-      sizes[i] = r < 0.5 ? (Math.random() * 6 + 4) : (Math.random() * 4 + 1.5);
+      sizes[i] = r < 0.5 ? (Math.random() * 3 + 2) : (Math.random() * 2 + 0.8);
       angles[i] = Math.random() * Math.PI * 2;
       radii[i] = r;
       branches[i] = branch + scatter * 0.4;
