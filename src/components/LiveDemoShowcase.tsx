@@ -49,7 +49,7 @@ void main(){
   float y = aT * 10.0 - 5.0;
   vDist = length(vec2(x, z));
   vec4 mvPos = modelViewMatrix * vec4(x, y, z, 1.0);
-  gl_PointSize = (1.2 - vDist * 0.2) * (300.0 / -mvPos.z);
+  gl_PointSize = (1.8 - vDist * 0.3) * (300.0 / -mvPos.z);
   gl_Position = projectionMatrix * mvPos;
 }`;
 
@@ -95,13 +95,13 @@ uniform vec3 uColorB;
 varying float vT;
 void main(){
   vec3 col = mix(uColorA, uColorB, vT);
-  gl_FragColor = vec4(col, 0.18);
+  gl_FragColor = vec4(col, 0.28);
 }`;
 
 function DNAHelixScene({ colors }: { colors: ThemeColors }) {
   const ref = useRef<THREE.Group>(null!);
-  const count = 600;
-  const rungCount = 40;
+  const count = 1000;
+  const rungCount = 70;
 
   const { geo, mat, rungGeo, rungMat } = useMemo(() => {
     // particles
@@ -185,8 +185,9 @@ void main(){
   float w = sin(p.x*1.8+uTime)*cos(p.z*1.4+uTime*0.7)
           + sin(p.x*3.5+uTime*1.3)*0.35
           + cos(p.z*2.8+uTime*0.5)*0.45
-          + sin((p.x+p.z)*2.0+uTime*0.9)*0.25;
-  p.y = w * 0.55;
+          + sin((p.x+p.z)*2.0+uTime*0.9)*0.25
+          + sin(p.x*5.0-uTime*1.7)*cos(p.z*4.2+uTime*0.6)*0.15;
+  p.y = w * 0.5;
   vH = p.y;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.0);
 }`;
@@ -229,7 +230,7 @@ function TerrainScene({ colors }: { colors: ThemeColors }) {
     <group rotation={[-Math.PI / 3.2, 0, Math.PI / 7]}>
       <ambientLight intensity={colors.isLight ? 0.4 : 0.15} />
       <pointLight position={[0, 5, 3]} intensity={0.8} color={colors.colorB} distance={20} />
-      <mesh material={mat}><planeGeometry args={[9, 9, 100, 100]} /></mesh>
+      <mesh material={mat}><planeGeometry args={[9, 9, 150, 150]} /></mesh>
     </group>
   );
 }
@@ -255,7 +256,7 @@ void main(){
   float y = sin(uTime * 0.5 + aRadius * 2.0) * 0.15 * (1.0 - aRadius/5.0);
   vDist = aRadius / 5.0;
   vec4 mv = modelViewMatrix * vec4(x, y, z, 1.0);
-  gl_PointSize = aSize * (60.0 / -mv.z);
+  gl_PointSize = aSize * (80.0 / -mv.z);
   gl_Position = projectionMatrix * mv;
 }`;
 
@@ -279,7 +280,7 @@ void main(){
 
 function GalaxyScene({ colors }: { colors: ThemeColors }) {
   const ref = useRef<THREE.Points>(null!);
-  const count = 6000;
+  const count = 10000;
 
   const { geo, mat } = useMemo(() => {
     const pos = new Float32Array(count * 3);
@@ -290,14 +291,14 @@ function GalaxyScene({ colors }: { colors: ThemeColors }) {
     const arms = 4;
 
     for (let i = 0; i < count; i++) {
-      const r = Math.pow(Math.random(), 0.55) * 5;
+      const r = Math.pow(Math.random(), 0.5) * 5;
       const branch = (i % arms) * (Math.PI * 2 / arms);
-      // tighter scatter near core, wider at edges
-      const scatterAmt = 0.35 * Math.pow(r / 5, 0.7);
+      // tighter scatter — cubic falloff keeps arms sharp
+      const scatterAmt = 0.22 * Math.pow(r / 5, 1.2);
       const scatter = (Math.random() - 0.5) * 2 * scatterAmt;
-      pos[i * 3] = scatter; pos[i * 3 + 1] = (Math.random() - 0.5) * 0.08; pos[i * 3 + 2] = scatter;
-      // core particles larger
-      sizes[i] = r < 0.5 ? (Math.random() * 1.5 + 1.0) : (Math.random() * 1.0 + 0.4);
+      pos[i * 3] = scatter; pos[i * 3 + 1] = (Math.random() - 0.5) * 0.05; pos[i * 3 + 2] = scatter;
+      // core brighter, outer dimmer
+      sizes[i] = r < 0.5 ? (Math.random() * 1.8 + 1.2) : (Math.random() * 0.8 + 0.3);
       angles[i] = Math.random() * Math.PI * 2;
       radii[i] = r;
       branches[i] = branch + scatter * 0.4;
@@ -340,7 +341,7 @@ function GalaxyScene({ colors }: { colors: ThemeColors }) {
 /* ================================================================ */
 
 function neuralNetworkRenderer(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, colors: ThemeColors): () => void {
-  const layers = [4, 6, 8, 6, 3];
+  const layers = [4, 7, 10, 8, 6, 3];
   interface N { x: number; y: number; layer: number }
   interface C { from: number; to: number; w: number }
   const neurons: N[] = [];
@@ -385,7 +386,7 @@ function neuralNetworkRenderer(ctx: CanvasRenderingContext2D, canvas: HTMLCanvas
     }
 
     // spawn pulses
-    if (Math.random() < 0.12) pulses.push({ ci: Math.floor(Math.random() * conns.length), p: 0, s: 0.012 + Math.random() * 0.018 });
+    if (Math.random() < 0.2) pulses.push({ ci: Math.floor(Math.random() * conns.length), p: 0, s: 0.01 + Math.random() * 0.015 });
 
     // draw pulses
     for (let i = pulses.length - 1; i >= 0; i--) {
@@ -414,7 +415,7 @@ function neuralNetworkRenderer(ctx: CanvasRenderingContext2D, canvas: HTMLCanvas
     for (let ni = 0; ni < neurons.length; ni++) {
       const n = neurons[ni];
       const pulse = 0.85 + Math.sin(t * 2.5 + ni * 0.6) * 0.15;
-      const r = 4.5 * pulse;
+      const r = 3.5 * pulse;
       const isIO = n.layer === 0 || n.layer === layers.length - 1;
 
       // outer glow
@@ -446,7 +447,7 @@ function neuralNetworkRenderer(ctx: CanvasRenderingContext2D, canvas: HTMLCanvas
 /* ================================================================ */
 
 function audioVisualizerRenderer(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, colors: ThemeColors): () => void {
-  const N = 64;
+  const N = 96;
   let animId: number;
 
   function animate() {
@@ -588,11 +589,11 @@ function DemoCard({ project, isSelected, onSelect }: { project: DemoProject; isS
 /* ================================================================ */
 
 const defaultProjects: DemoProject[] = [
-  { id: 'dna', title: 'DNA 雙螺旋粒子', description: 'Shader 驅動的 600 粒子雙股螺旋，自發光漸變', tags: ['Shader', 'Particles', 'WebGL'], renderer: 'webgl', SceneContent: DNAHelixScene },
-  { id: 'terrain', title: '波形地形生成', description: '四重波疊加的即時 GLSL wireframe 地形', tags: ['GLSL', 'Wireframe', 'Shader'], renderer: 'webgl', SceneContent: TerrainScene },
-  { id: 'galaxy', title: '粒子星系模擬', description: '四臂螺旋 5000 粒子，自訂 Shader 光暈', tags: ['Shader', 'Particles', '5K'], renderer: 'webgl', SceneContent: GalaxyScene },
-  { id: 'neural', title: '神經網路視覺化', description: '脈衝拖尾傳導動畫，多層前饋網路', tags: ['Canvas 2D', 'AI', 'Glow'], renderer: 'canvas2d', renderCanvas2D: neuralNetworkRenderer },
-  { id: 'audio', title: '音頻波形分析', description: '64 頻段頻譜 + 鏡像反射 + 峰值追蹤', tags: ['Canvas 2D', 'Spectrum', '64ch'], renderer: 'canvas2d', renderCanvas2D: audioVisualizerRenderer },
+  { id: 'dna', title: 'DNA 雙螺旋粒子', description: '1000 粒子雙股螺旋 + 70 條橫桿連線', tags: ['Shader', 'Particles', 'WebGL'], renderer: 'webgl', SceneContent: DNAHelixScene },
+  { id: 'terrain', title: '波形地形生成', description: '五重波疊加 150x150 即時 GLSL wireframe', tags: ['GLSL', 'Wireframe', 'Shader'], renderer: 'webgl', SceneContent: TerrainScene },
+  { id: 'galaxy', title: '粒子星系模擬', description: '四臂螺旋 10K 粒子，銳利旋臂結構', tags: ['Shader', 'Particles', '10K'], renderer: 'webgl', SceneContent: GalaxyScene },
+  { id: 'neural', title: '神經網路視覺化', description: '六層前饋網路，高頻脈衝拖尾傳導', tags: ['Canvas 2D', 'AI', 'Glow'], renderer: 'canvas2d', renderCanvas2D: neuralNetworkRenderer },
+  { id: 'audio', title: '音頻波形分析', description: '96 頻段頻譜 + 鏡像反射 + 峰值追蹤', tags: ['Canvas 2D', 'Spectrum', '96ch'], renderer: 'canvas2d', renderCanvas2D: audioVisualizerRenderer },
 ];
 
 /* ================================================================ */
@@ -663,7 +664,7 @@ export default function LiveDemoShowcase({ projects = defaultProjects }: { proje
             {/* render area */}
             <div style={{ width: '100%', height: `${viewportH - topBarH}px` }}>
               {selected?.renderer === 'webgl' ? (
-                <Canvas camera={{ position: [0, 0, 5], fov: 50 }} style={{ background: 'transparent' }} dpr={[1, 1.5]}>
+                <Canvas camera={{ position: [0, 0, 5], fov: 50 }} style={{ background: 'transparent' }} dpr={[1, 2]}>
                   {selected.SceneContent ? <selected.SceneContent colors={colors} /> : null}
                 </Canvas>
               ) : (
