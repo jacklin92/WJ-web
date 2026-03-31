@@ -6,6 +6,7 @@ import { defineConfig } from 'astro/config';
 
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
+import devApiPlugin from './dev-api-plugin.ts';
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,6 +15,9 @@ export default defineConfig({
   integrations: [mdx(), sitemap(), react()],
 
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      devApiPlugin(),
+    ],
   },
 });

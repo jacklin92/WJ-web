@@ -1,0 +1,92 @@
+===================================================================
+  WJ-web 文章編輯器 — 本地開發專用指南
+===================================================================
+
+[概述]
+
+  編輯器僅在本地開發環境 (npm run dev) 下可用。
+  正式部署的網站不會包含編輯器頁面，訪客無法存取。
+  這確保了 GitHub 帳號與 repo 的安全性：
+    - 不在前端暴露任何 token 或密鑰
+    - 不需要額外的後端伺服器
+    - 不存在未授權的寫入管道
+
+
+[使用流程]
+
+  1. 啟動開發伺服器
+     $ npm run dev
+
+  2. 開啟瀏覽器前往編輯器
+     http://localhost:4321/WJ-web/editor
+
+  3. 點擊「+ 新增」建立草稿，撰寫文章內容
+     - 草稿自動儲存在瀏覽器 localStorage 中
+     - 可隨時關閉瀏覽器，下次開啟仍在
+
+  4. 填寫「文章描述」欄位（選填，會寫入 frontmatter）
+
+  5. 點擊「發布到 Blog」
+     - 文章會被轉換為 Markdown 並寫入 src/content/blog/
+     - 檔名根據標題自動產生（slug 格式）
+     - 若檔名衝突會自動加上編號避免覆蓋
+
+  6. 確認檔案已產生
+     $ git status
+     # 應該看到 src/content/blog/你的文章.md
+
+  7. 提交並推送以觸發部署
+     $ git add src/content/blog/你的文章.md
+     $ git commit -m "post: 新增文章 - 文章標題"
+     $ git push origin main
+
+  8. GitHub Actions 會自動建置並部署到 GitHub Pages
+
+
+[其他功能]
+
+  - 「匯出 .md」按鈕：下載 Markdown 檔案到電腦（不寫入 repo）
+  - 草稿列表：瀏覽器 localStorage 中的所有草稿
+  - 首頁的「草稿文章」區塊也只在 dev 模式下顯示
+
+
+[架構說明]
+
+  檔案                            用途
+  ─────────────────────────────── ──────────────────────────
+  dev-api-plugin.ts               Vite dev plugin，提供本地
+                                  API 端點 (/__dev-api/*)
+                                  僅在 astro dev 時啟用
+  src/pages/editor.astro          編輯器頁面，production 時
+                                  自動重導到首頁
+  src/components/ArticleEditor.tsx 編輯器 React 元件
+  src/components/Header.astro      導覽列，production 時隱藏
+                                  「編輯器」連結
+  src/content/blog/*.md           發布後的文章存放位置
+
+
+[安全性]
+
+  - dev-api-plugin.ts 設定 apply: 'serve'
+    Vite 在 build 時完全忽略此 plugin，不會打包進產出物
+
+  - editor.astro 在非 DEV 環境回傳 redirect
+    即使有人猜到 /editor 路徑，也只會被導回首頁
+
+  - Header.astro 使用 import.meta.env.DEV 判斷
+    正式網站的導覽列不會出現「編輯器」選項
+
+  - 不需要在 GitHub repo 中存放任何密鑰或 token
+    整個流程都在本機完成，推送透過 git 指令
+
+
+[如果想從遠端發文]
+
+  目前的方案僅支援本機操作。
+  未來若需要從手機或其他電腦發文，可升級為：
+    方案 B：GitHub OAuth + GitHub API
+    方案 C：整合 Decap CMS（原 Netlify CMS）
+  這些方案需要額外設定，但同樣不會暴露敏感資訊。
+
+
+===================================================================

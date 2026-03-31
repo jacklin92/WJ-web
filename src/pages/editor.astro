@@ -1,9 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleEditor from '../components/ArticleEditor.tsx';
+
+// Production 環境不提供編輯器，直接重導回首頁
+if (!import.meta.env.DEV) {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  return Astro.redirect(`${base}/`);
+}
 ---
 
-<BaseLayout title="文章編輯器" description="建立與編輯文章">
+<BaseLayout title="文章編輯器 (Dev Only)" description="本地開發專用文章編輯器">
   <main style="height: calc(100vh - 4rem); padding: 0 1rem 1rem;">
     <ArticleEditor client:only="react" />
   </main>

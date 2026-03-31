@@ -19,9 +19,11 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
       <a href={`${basePath}/blog`} class="nav-link text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium relative">
         文章
       </a>
-      <a href={`${basePath}/editor`} class="nav-link text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium relative">
-        編輯器
-      </a>
+      {import.meta.env.DEV && (
+        <a href={`${basePath}/editor`} class="nav-link text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium relative">
+          編輯器
+        </a>
+      )}
       <ThemeToggle client:only="react" />
       <a
         href="https://github.com/jacklin92"

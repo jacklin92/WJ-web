@@ -4,7 +4,6 @@ interface Article {
   id: string;
   title: string;
   content: string;
-  published?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -102,11 +101,16 @@ const toolbarGroups = [
   ],
 ];
 
+type PublishStatus = 'idle' | 'publishing' | 'success' | 'error';
+
 export default function ArticleEditor() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [publishStatus, setPublishStatus] = useState<PublishStatus>('idle');
+  const [publishMsg, setPublishMsg] = useState('');
   const editorRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number>(0);
 
@@ -157,7 +161,6 @@ export default function ArticleEditor() {
       id: generateId(),
       title: '',
       content: '',
-      published: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -166,6 +169,7 @@ export default function ArticleEditor() {
     saveToStorage(updated);
     setCurrentId(article.id);
     setTitle('');
+    setDescription('');
     if (editorRef.current) editorRef.current.innerHTML = '';
     setTimeout(() => {
       const input = document.getElementById('article-title-input') as HTMLInputElement;
@@ -179,6 +183,9 @@ export default function ArticleEditor() {
     if (!article) return;
     setCurrentId(article.id);
     setTitle(article.title);
+    setDescription('');
+    setPublishStatus('idle');
+    setPublishMsg('');
     if (editorRef.current) editorRef.current.innerHTML = article.content;
   };
 
@@ -191,21 +198,60 @@ export default function ArticleEditor() {
     if (currentId === id) {
       setCurrentId(null);
       setTitle('');
+      setDescription('');
       if (editorRef.current) editorRef.current.innerHTML = '';
     }
   };
 
-  const togglePublish = () => {
-    if (!currentId) return;
-    setArticles(prev => {
-      const updated = prev.map(a =>
-        a.id === currentId
-          ? { ...a, published: !a.published, updatedAt: new Date().toISOString() }
-          : a
-      );
-      saveToStorage(updated);
-      return updated;
-    });
+  /** 發布：將文章透過 dev API 寫入 src/content/blog/ */
+  const publishArticle = async () => {
+    if (!currentId || !editorRef.current || !title.trim()) {
+      setPublishStatus('error');
+      setPublishMsg('請先輸入文章標題');
+      return;
+    }
+
+    doSave();
+    setPublishStatus('publishing');
+    setPublishMsg('');
+
+    try {
+      const markdownContent = htmlToMarkdown(editorRef.current.innerHTML);
+      const res = await fetch('/__dev-api/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          content: markdownContent,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setPublishStatus('success');
+        setPublishMsg(`已寫入 ${data.filePath}`);
+      } else {
+        setPublishStatus('error');
+        setPublishMsg(data.error || '發布失敗');
+      }
+    } catch (err: any) {
+      setPublishStatus('error');
+      setPublishMsg(err.message || '無法連線到 dev API');
+    }
+  };
+
+  const exportMarkdown = () => {
+    if (!editorRef.current) return;
+    const md = htmlToMarkdown(editorRef.current.innerHTML);
+    const frontmatter = `---\ntitle: '${title || '\u672A\u547D\u540D'}'\ndescription: '${description}'\npubDate: '${new Date().toISOString().split('T')[0]}'\n---\n\n`;
+    const blob = new Blob([frontmatter + md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title || 'untitled'}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const execCmd = (cmd: string, value?: string) => {
@@ -222,19 +268,6 @@ export default function ArticleEditor() {
     }
     editorRef.current?.focus();
     scheduleSave();
-  };
-
-  const exportMarkdown = () => {
-    if (!editorRef.current) return;
-    const md = htmlToMarkdown(editorRef.current.innerHTML);
-    const frontmatter = `---\ntitle: '${title || '\u672A\u547D\u540D'}'\ndescription: ''\npubDate: '${new Date().toISOString().split('T')[0]}'\n---\n\n`;
-    const blob = new Blob([frontmatter + md], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${title || 'untitled'}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const formatDate = (iso: string) =>
@@ -260,6 +293,17 @@ export default function ArticleEditor() {
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 5rem)', minHeight: '500px' }}>
+      {/* Dev mode 標記 */}
+      <div style={{
+        position: 'fixed', top: '4.5rem', left: '50%', transform: 'translateX(-50%)',
+        zIndex: 100, padding: '3px 12px', borderRadius: '0 0 8px 8px',
+        background: 'rgba(234, 179, 8, 0.15)', border: '1px solid rgba(234, 179, 8, 0.3)',
+        borderTop: 'none', fontSize: '0.65rem', color: '#eab308', fontWeight: 600,
+        letterSpacing: '0.05em', backdropFilter: 'blur(8px)',
+      }}>
+        DEV ONLY — 此頁面不會出現在正式網站
+      </div>
+
       {/* Sidebar */}
       <aside
         style={{
@@ -276,7 +320,7 @@ export default function ArticleEditor() {
       >
         <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-            文章列表
+            草稿列表
           </span>
           <button
             onClick={createArticle}
@@ -300,7 +344,7 @@ export default function ArticleEditor() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem' }}>
           {articles.length === 0 && (
             <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-              尚無文章，點擊「+ 新增」開始撰寫
+              尚無草稿，點擊「+ 新增」開始撰寫
             </div>
           )}
           {articles.map(a => (
@@ -325,30 +369,15 @@ export default function ArticleEditor() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{
-                      fontWeight: 600,
-                      fontSize: '0.85rem',
-                      color: 'var(--text-primary)',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      flex: 1,
-                      minWidth: 0,
-                    }}>
-                      {a.title || '未命名文章'}
-                    </div>
-                    {a.published && (
-                      <span style={{
-                        fontSize: '0.6rem',
-                        padding: '1px 6px',
-                        borderRadius: '999px',
-                        background: 'rgba(34,197,94,0.15)',
-                        color: '#22c55e',
-                        flexShrink: 0,
-                        fontWeight: 600,
-                      }}>已發布</span>
-                    )}
+                  <div style={{
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    color: 'var(--text-primary)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {a.title || '未命名文章'}
                   </div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
                     {formatDate(a.updatedAt)}
@@ -372,7 +401,7 @@ export default function ArticleEditor() {
                   }}
                   onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
                   onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-                  title="刪除文章"
+                  title="刪除草稿"
                 >
                   <TrashIcon />
                 </button>
@@ -393,14 +422,11 @@ export default function ArticleEditor() {
           borderBottom: '1px solid var(--border-color)',
           background: 'var(--bg-secondary)',
           borderRadius: currentId ? '0' : '0 12px 0 0',
+          flexWrap: 'wrap',
         }}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            style={{
-              ...btnBase,
-              width: '36px',
-              height: '36px',
-            }}
+            style={{ ...btnBase, width: '36px', height: '36px' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-light)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
             title={sidebarOpen ? '收合側邊欄' : '展開側邊欄'}
@@ -416,6 +442,7 @@ export default function ArticleEditor() {
                 placeholder="輸入文章標題..."
                 style={{
                   flex: 1,
+                  minWidth: '150px',
                   padding: '8px 12px',
                   background: 'var(--bg-card)',
                   border: '1px solid var(--border-color)',
@@ -430,15 +457,30 @@ export default function ArticleEditor() {
                 onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-light)'; }}
                 onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
               />
+
+              {/* 發布到 blog */}
               <button
-                onClick={togglePublish}
+                onClick={publishArticle}
+                disabled={publishStatus === 'publishing'}
                 style={{
                   padding: '8px 16px',
-                  background: currentArticle?.published ? 'rgba(34,197,94,0.15)' : 'var(--bg-card)',
-                  border: `1px solid ${currentArticle?.published ? '#22c55e' : 'var(--border-color)'}`,
+                  background: publishStatus === 'success'
+                    ? 'rgba(34,197,94,0.15)'
+                    : publishStatus === 'error'
+                      ? 'rgba(239,68,68,0.1)'
+                      : 'var(--accent)',
+                  border: publishStatus === 'success'
+                    ? '1px solid #22c55e'
+                    : publishStatus === 'error'
+                      ? '1px solid #ef4444'
+                      : '1px solid var(--accent)',
                   borderRadius: '8px',
-                  color: currentArticle?.published ? '#22c55e' : 'var(--accent-light)',
-                  cursor: 'pointer',
+                  color: publishStatus === 'success'
+                    ? '#22c55e'
+                    : publishStatus === 'error'
+                      ? '#ef4444'
+                      : 'var(--accent-text)',
+                  cursor: publishStatus === 'publishing' ? 'wait' : 'pointer',
                   fontSize: '0.8rem',
                   fontWeight: 600,
                   transition: 'all 0.2s',
@@ -447,18 +489,19 @@ export default function ArticleEditor() {
                   alignItems: 'center',
                   gap: '4px',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; }}
+                onMouseEnter={e => { if (publishStatus === 'idle') e.currentTarget.style.transform = 'scale(1.02)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-                title={currentArticle?.published ? '取消發布' : '發布文章'}
+                title="將文章寫入 src/content/blog/ 資料夾"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  {currentArticle?.published
-                    ? <><path d="M17 7l-10 10" /><path d="M7 7h10v10" /></>
-                    : <><path d="M7 17l10-10" /><path d="M17 17H7V7" /></>
-                  }
+                  <path d="M7 17l10-10" /><path d="M17 17H7V7" />
                 </svg>
-                {currentArticle?.published ? '取消發布' : '發布'}
+                {publishStatus === 'publishing' ? '寫入中...'
+                  : publishStatus === 'success' ? '已寫入'
+                  : publishStatus === 'error' ? '失敗'
+                  : '發布到 Blog'}
               </button>
+
               <button
                 onClick={exportMarkdown}
                 style={{
@@ -475,13 +518,61 @@ export default function ArticleEditor() {
                 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-light)'; e.currentTarget.style.transform = 'scale(1.02)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.transform = 'scale(1)'; }}
-                title="匯出為 Markdown 檔案"
+                title="匯出為 Markdown 檔案下載"
               >
                 匯出 .md
               </button>
             </>
           )}
         </div>
+
+        {/* 發布結果訊息 */}
+        {publishMsg && (
+          <div style={{
+            padding: '0.4rem 1rem',
+            fontSize: '0.75rem',
+            fontFamily: 'monospace',
+            color: publishStatus === 'success' ? '#22c55e' : '#ef4444',
+            background: publishStatus === 'success' ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)',
+            borderBottom: '1px solid var(--border-color)',
+          }}>
+            {publishMsg}
+            {publishStatus === 'success' && (
+              <span style={{ marginLeft: '1rem', color: 'var(--text-secondary)' }}>
+                — 記得 git add + commit + push 來觸發部署
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Description 輸入（發布時使用） */}
+        {currentId && (
+          <div style={{
+            padding: '0.4rem 1rem',
+            borderBottom: '1px solid var(--border-color)',
+            background: 'var(--bg-secondary)',
+          }}>
+            <input
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="文章描述（選填，發布時作為 frontmatter description）..."
+              style={{
+                width: '100%',
+                padding: '6px 10px',
+                background: 'transparent',
+                border: '1px solid var(--border-color)',
+                borderRadius: '6px',
+                color: 'var(--text-secondary)',
+                fontSize: '0.8rem',
+                outline: 'none',
+                fontFamily: 'inherit',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent-light)'; }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+            />
+          </div>
+        )}
 
         {currentId ? (
           <>
@@ -565,10 +656,11 @@ export default function ArticleEditor() {
               &lt;/&gt;
             </div>
             <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-              選擇文章或建立新文章
+              選擇草稿或建立新文章
             </div>
-            <div style={{ fontSize: '0.85rem' }}>
-              從左側選擇一篇文章，或點擊下方按鈕新增
+            <div style={{ fontSize: '0.85rem', textAlign: 'center', lineHeight: 1.6, maxWidth: '360px' }}>
+              在此撰寫文章，點擊「發布到 Blog」將 .md 檔案寫入<br />
+              <code style={{ fontSize: '0.8rem' }}>src/content/blog/</code>，再 git push 即可部署。
             </div>
             <button
               onClick={createArticle}
