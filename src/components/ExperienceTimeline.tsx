@@ -510,15 +510,13 @@ export default function ExperienceTimeline() {
       style={{
         position: 'relative',
         width: '100%',
-        background: 'var(--bg-secondary)',
-        borderTop: '1px solid var(--border-color)',
-        borderBottom: '1px solid var(--border-color)',
+        padding: '3rem 1rem 2.5rem',
       }}
     >
       {/* 區塊標題 */}
-      <div style={{ textAlign: 'center', padding: '3.5rem 1rem 0.5rem' }}>
+      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{
-          fontSize: '2.2rem',
+          fontSize: '2rem',
           fontWeight: 700,
           color: 'var(--text-primary)',
           marginBottom: '0.5rem',
@@ -533,105 +531,151 @@ export default function ExperienceTimeline() {
           borderRadius: 2,
           margin: '0 auto 0.75rem',
         }} />
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '420px', margin: '0 auto' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '400px', margin: '0 auto' }}>
           從第一行 HTML 到全端 3D 互動 — 捲動探索我的網頁開發旅程
         </p>
       </div>
 
-      {/* 場景容器 */}
-      <div style={{ position: 'relative', height: '650px' }}>
-        {/* 3D Canvas */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-          <Canvas
-            camera={{ position: [0, 4, 7], fov: 48 }}
-            style={{ background: 'transparent' }}
-            dpr={[1, 1.5]}
-          >
-            <TimelineScene scrollProgress={scrollProgress} />
-          </Canvas>
-        </div>
-
-        {/* 捲動驅動層 */}
-        <div
-          ref={containerRef}
-          style={{ position: 'absolute', inset: 0, zIndex: 1, overflowY: 'auto' }}
-        >
-          <div style={{ height: '350%', pointerEvents: 'none' }} />
-        </div>
-
-        {/* HTML 資訊面板 */}
-        <InfoOverlay scrollProgress={scrollProgress} />
-
-        {/* 進度指示條 */}
+      {/* 精美邊框容器 */}
+      <div
+        style={{
+          position: 'relative',
+          maxWidth: '960px',
+          margin: '0 auto',
+          borderRadius: '16px',
+          padding: '1px',
+          background: 'linear-gradient(135deg, var(--accent), var(--accent-glow), var(--accent-dark), var(--accent-glow), var(--accent))',
+          backgroundSize: '300% 300%',
+          animation: 'gradientShift 6s ease infinite',
+        }}
+      >
+        {/* 內層 — 場景容器 */}
         <div
           style={{
-            position: 'absolute',
-            right: '1.25rem',
-            top: '1.5rem',
-            bottom: '1.5rem',
-            width: '3px',
-            background: 'var(--border-color)',
-            borderRadius: '2px',
-            zIndex: 2,
-            pointerEvents: 'none',
+            position: 'relative',
+            height: '480px',
+            borderRadius: '15px',
+            overflow: 'hidden',
+            background: 'var(--bg-secondary)',
           }}
         >
-          <div
-            style={{
-              width: '100%',
-              height: `${scrollProgress * 100}%`,
-              background: 'linear-gradient(180deg, var(--accent), var(--accent-glow))',
-              borderRadius: '2px',
-              transition: 'height 0.1s ease-out',
-              boxShadow: '0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow)',
-            }}
-          />
-          {/* 進度頂端光點 */}
-          <div
-            style={{
-              position: 'absolute',
-              top: `${scrollProgress * 100}%`,
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '9px',
-              height: '9px',
-              borderRadius: '50%',
-              background: 'var(--accent-light)',
-              boxShadow: '0 0 12px var(--accent-glow)',
-              transition: 'top 0.1s ease-out',
-            }}
-          />
-        </div>
+          {/* 四角裝飾 */}
+          {(['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const).map((corner) => {
+            const isTop = corner.includes('top');
+            const isLeft = corner.includes('left');
+            return (
+              <div
+                key={corner}
+                style={{
+                  position: 'absolute',
+                  [isTop ? 'top' : 'bottom']: '10px',
+                  [isLeft ? 'left' : 'right']: '10px',
+                  width: '20px',
+                  height: '20px',
+                  zIndex: 4,
+                  pointerEvents: 'none',
+                  borderTop: isTop ? '2px solid var(--accent-light)' : 'none',
+                  borderBottom: !isTop ? '2px solid var(--accent-light)' : 'none',
+                  borderLeft: isLeft ? '2px solid var(--accent-light)' : 'none',
+                  borderRight: !isLeft ? '2px solid var(--accent-light)' : 'none',
+                  opacity: 0.5,
+                }}
+              />
+            );
+          })}
 
-        {/* 捲動提示 */}
-        {scrollProgress < 0.05 && (
+          {/* 3D Canvas */}
+          <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+            <Canvas
+              camera={{ position: [0, 4, 7], fov: 48 }}
+              style={{ background: 'transparent' }}
+              dpr={[1, 1.5]}
+            >
+              <TimelineScene scrollProgress={scrollProgress} />
+            </Canvas>
+          </div>
+
+          {/* 捲動驅動層 */}
+          <div
+            ref={containerRef}
+            style={{ position: 'absolute', inset: 0, zIndex: 1, overflowY: 'auto' }}
+          >
+            <div style={{ height: '350%', pointerEvents: 'none' }} />
+          </div>
+
+          {/* HTML 資訊面板 */}
+          <InfoOverlay scrollProgress={scrollProgress} />
+
+          {/* 進度指示條 */}
           <div
             style={{
               position: 'absolute',
-              bottom: '1.5rem',
-              right: '2.5rem',
-              zIndex: 3,
+              right: '1rem',
+              top: '1.25rem',
+              bottom: '1.25rem',
+              width: '3px',
+              background: 'var(--border-color)',
+              borderRadius: '2px',
+              zIndex: 2,
               pointerEvents: 'none',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '0.3rem',
-              animation: 'fadeInUp 1s ease-out',
-              opacity: 0.6,
             }}
           >
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', letterSpacing: '0.08em' }}>
-              SCROLL
-            </span>
-            <svg width="16" height="24" viewBox="0 0 16 24" fill="none" style={{ animation: 'float 2s ease-in-out infinite' }}>
-              <rect x="5" y="0" width="6" height="12" rx="3" stroke="var(--text-secondary)" strokeWidth="1.5" fill="none" />
-              <circle cx="8" cy="5" r="1.5" fill="var(--accent-light)">
-                <animate attributeName="cy" values="4;8;4" dur="1.5s" repeatCount="indefinite" />
-              </circle>
-              <path d="M4 16 L8 20 L12 16" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <div
+              style={{
+                width: '100%',
+                height: `${scrollProgress * 100}%`,
+                background: 'linear-gradient(180deg, var(--accent), var(--accent-glow))',
+                borderRadius: '2px',
+                transition: 'height 0.1s ease-out',
+                boxShadow: '0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow)',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                top: `${scrollProgress * 100}%`,
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '9px',
+                height: '9px',
+                borderRadius: '50%',
+                background: 'var(--accent-light)',
+                boxShadow: '0 0 12px var(--accent-glow)',
+                transition: 'top 0.1s ease-out',
+              }}
+            />
           </div>
-        )}
+
+          {/* 捲動提示 */}
+          {scrollProgress < 0.05 && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '1.25rem',
+                right: '2rem',
+                zIndex: 3,
+                pointerEvents: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.3rem',
+                animation: 'fadeInUp 1s ease-out',
+                opacity: 0.6,
+              }}
+            >
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', letterSpacing: '0.08em' }}>
+                SCROLL
+              </span>
+              <svg width="14" height="22" viewBox="0 0 16 24" fill="none" style={{ animation: 'float 2s ease-in-out infinite' }}>
+                <rect x="5" y="0" width="6" height="12" rx="3" stroke="var(--text-secondary)" strokeWidth="1.5" fill="none" />
+                <circle cx="8" cy="5" r="1.5" fill="var(--accent-light)">
+                  <animate attributeName="cy" values="4;8;4" dur="1.5s" repeatCount="indefinite" />
+                </circle>
+                <path d="M4 16 L8 20 L12 16" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
