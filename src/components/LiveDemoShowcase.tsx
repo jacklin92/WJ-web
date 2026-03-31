@@ -79,7 +79,7 @@ void main(){
   float t = aT * 6.2831853 * 3.0;
   float r = 1.3 + sin(uTime * 0.8 + aT * 12.0) * 0.15;
   float phase = t + uTime * 0.4;
-  float frac = fract(position.x); // 0..1 interpolation between strands
+  float frac = position.x; // 0 or 1 interpolation between strands
   float x1 = cos(phase) * r, z1 = sin(phase) * r;
   float x2 = cos(phase) * r * -1.0, z2 = sin(phase) * r * -1.0;
   float x = mix(x1, x2, frac);
@@ -599,47 +599,50 @@ const defaultProjects: DemoProject[] = [
 /*  Main                                                            */
 /* ================================================================ */
 
+function useIsMobile(breakpoint = 768) {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    setMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return mobile;
+}
+
 export default function LiveDemoShowcase({ projects = defaultProjects }: { projects?: DemoProject[] }) {
   const colors = useThemeColors();
   const [selectedId, setSelectedId] = useState(projects[0]?.id ?? '');
   const selected = projects.find(p => p.id === selectedId) ?? projects[0];
+  const isMobile = useIsMobile();
   const topBarH = 33;
+  const viewportH = isMobile ? 320 : 420;
 
   return (
     <section style={{ width: '100%', padding: '2.5rem 1rem 2rem' }}>
-      <style>{`
-        .demo-layout { display: flex; gap: 1rem; align-items: flex-start; }
-        .demo-sidebar { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 0.4rem; }
-        .demo-viewport { flex: 1; min-width: 0; }
-        .demo-viewport-inner { height: 420px; }
-        @media (max-width: 768px) {
-          .demo-layout { flex-direction: column; }
-          .demo-sidebar { width: 100%; flex-direction: row; overflow-x: auto; gap: 0.5rem; padding-bottom: 0.4rem;
-            scrollbar-width: thin; -ms-overflow-style: none; }
-          .demo-sidebar::-webkit-scrollbar { height: 3px; }
-          .demo-sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
-          .demo-sidebar > button { min-width: 170px; flex-shrink: 0; }
-          .demo-viewport-inner { height: 340px; }
-        }
-      `}</style>
-
       <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
         <h2 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Live Demo</h2>
         <div style={{ width: 60, height: 3, background: 'linear-gradient(90deg, var(--accent), var(--accent-glow))', borderRadius: 2, margin: '0 auto 0.6rem' }} />
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '380px', margin: '0 auto' }}>即時互動展示區 — WebGL 與 Canvas 2D 視覺化</p>
       </div>
 
-      <div className="demo-layout" style={{ maxWidth: '960px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1rem', alignItems: 'flex-start' }}>
         {/* 選單 */}
-        <div className="demo-sidebar">
+        <div style={isMobile
+          ? { width: '100%', display: 'flex', flexDirection: 'row', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.4rem', WebkitOverflowScrolling: 'touch' }
+          : { width: '220px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }
+        }>
           {projects.map(p => (
-            <DemoCard key={p.id} project={p} isSelected={p.id === selectedId} onSelect={() => setSelectedId(p.id)} />
+            <div key={p.id} style={isMobile ? { minWidth: '170px', flexShrink: 0 } : undefined}>
+              <DemoCard project={p} isSelected={p.id === selectedId} onSelect={() => setSelectedId(p.id)} />
+            </div>
           ))}
         </div>
 
         {/* 渲染視窗 */}
-        <div className="demo-viewport" style={{ borderRadius: '16px', padding: '1px', background: 'linear-gradient(135deg, var(--accent), var(--accent-glow), var(--accent-dark), var(--accent-glow), var(--accent))', backgroundSize: '300% 300%', animation: 'gradientShift 6s ease infinite' }}>
-          <div className="demo-viewport-inner" style={{ borderRadius: '15px', overflow: 'hidden', background: 'var(--bg-secondary)', position: 'relative' }}>
+        <div style={{ flex: 1, minWidth: 0, width: isMobile ? '100%' : undefined, borderRadius: '16px', padding: '1px', background: 'linear-gradient(135deg, var(--accent), var(--accent-glow), var(--accent-dark), var(--accent-glow), var(--accent))', backgroundSize: '300% 300%', animation: 'gradientShift 6s ease infinite' }}>
+          <div style={{ borderRadius: '15px', overflow: 'hidden', background: 'var(--bg-secondary)', height: `${viewportH}px`, position: 'relative' }}>
             {/* top bar */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.85rem', background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)', backdropFilter: 'blur(8px)', height: `${topBarH}px`, boxSizing: 'border-box' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -658,7 +661,7 @@ export default function LiveDemoShowcase({ projects = defaultProjects }: { proje
             })}
 
             {/* render area */}
-            <div style={{ width: '100%', height: `calc(100% - ${topBarH}px)` }}>
+            <div style={{ width: '100%', height: `${viewportH - topBarH}px` }}>
               {selected?.renderer === 'webgl' ? (
                 <Canvas camera={{ position: [0, 0, 5], fov: 50 }} style={{ background: 'transparent' }} dpr={[1, 1.5]}>
                   {selected.SceneContent ? <selected.SceneContent colors={colors} /> : null}
